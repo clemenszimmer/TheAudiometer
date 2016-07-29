@@ -1,0 +1,51 @@
+How to represent an Audiometer in software?
+
+Classes:
+
+Class SoundGenerator
+
+•	Private properties: oscillator, audioContext, gainNode, gain_dummy, merger
+•	Private properties: frequency, activeChannel, gain 
+•	Private methods
+1)	Method _switchActiveChannel
+2)	Method _beeping
+•	Public methods
+1)	Method getFrequency
+2)	Method setFrequency(frequency)
+3)	Method getGain
+4)	Method setGain(gain)
+5)	Method getActiveChannel
+6)	Method setActiveChannel (activeChannel)
+7)	Method set(frequency, gain, activeChannel)
+8)	Method start
+9)	Method stop
+
+
+Class AudiometrySample
+
+•	Private properties: SoundGenerator
+•	Public properties: initialFrequency, initalLoudness, initialActiveChannel, initialTime
+•	Private methods
+1)	Method _decreaseLoudness: Decrease loudness.
+2)      Method _increaseLoudness: Increase loudness.
+3)      Method start: Start the increasing beep-sound.
+4)      Method stop: Stop the sound.
+5)	Method getCurrentParameters: Storage of loudness, frequency, active channel and time.
+6)      Method loudnessToGain(initialLoudness): returns the initialGain, given a parameter. Makes use of pairloudnessGain class.
+
+
+Class PairLoudnessGain
+
+•	Public properties: loudness, gain
+
+Class Audiometer (Composition with Audiometry Sample)
+
+•	Properties: AudiometrySample, frequencyArray
+•	Private methods
+1)	Method _changeFrequency: every time 30s are past, increases frequency; after 240s, return to initial frequency; when 480s are past
+2)	Method _changeActiveChannel: when 240s (=30s*8frequencies) are past, change the side of speaker.
+3)	Method finishPlaying: after 480s (8 frequencies already tested by both ears), finish 
+•	Public methods
+1)	Method start: call start from AudiometrySample (should be later called every time 30seconds are past)
+2)	Method informResult: after 480s are past, access saved data and inform degree of Hearing Loss (normal, moderate, mild, severe or profound) and displays audiogram by pressing a button “Finished the audiometric test? Click here to see your data
+
