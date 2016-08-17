@@ -38,11 +38,24 @@ SoundGenerator.prototype._beeping = function () {
     this.oscillator.onended = (this._beeping).bind(this);
 
     this.oscillator.frequency.value = this.frequency;
-    this.gainNode.gain.value = this.getGain(); //TODO
+    //this.gainNode.gain.value = this.getGain(); //TODO
+	//console.log("Current Gain before:" + this.gainNode.gain.value);
 
-    this.oscillator.start(this.audioContext.currentTime + 0.5); //Start in 0.5s
-    this.oscillator.stop(this.audioContext.currentTime + 1);    //End in 1s
+	
+	//var AudioParam = AudioParam.setValueAtTime(0, this.audioContext.currentTime);
+	
+	// according to DIN EN 60645-1 p. 27
+	// linear oder exponential ramp? -- 
+    this.gainNode.gain = 0;
+	//var currentTime
+	this.oscillator.start(this.audioContext.currentTime);
+	//this.gainNode.gain.setValueAtTime(0.01, this.audioContext.currentTime);							// start at 0ms with gain 0
+	this.gainNode.gain.exponentialRampToValueAtTime(1, this.audioContext.currentTime + 0.04);		// ramp length 20 - 50ms (chose 40ms)
+	this.gainNode.gain.setValueAtTime(1, this.audioContext.currentTime + 0.04 + 0.2);						// beep length must be more than 150 ms (chose 200ms)
+	this.gainNode.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 0.04 + 0.2 + 0.04);	// ramp length 20 - 50ms (chose 40ms)
+    this.oscillator.stop(this.audioContext.currentTime + 0.04 + 0.2 + 0.04 + 0.2);    //End in 
 };
+
 SoundGenerator.prototype.start = function () {
     this._beeping();
 };
