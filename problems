@@ -1,1 +1,3 @@
 - "beep" has to fade out or end with amplitude 0, otherwise pops
+
+- what doues "gainNode" atually do? linear scale? logarithmic scale? step size?
