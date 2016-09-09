@@ -29,12 +29,16 @@ SoundGenerator.prototype = Object.create(SoundGenerator.prototype);
 SoundGenerator.prototype.constructor = SoundGenerator;
 
 SoundGenerator.prototype._beeping = function () {
-    this.afterBeepCallback();
+    // Audiometer._handleBeep() wird aufgerufen
+	this.afterBeepCallback();
 
     console.log("SoundGenerator: next beep with " + this.getFrequency() + "Hz and gain " + this.getGain());
 
     this.oscillator = this.audioContext.createOscillator();
     this.oscillator.connect(this.gainNode);
+	
+	
+	// LOOP ? How to end?
     this.oscillator.onended = (this._beeping).bind(this);
 
     this.oscillator.frequency.value = this.frequency;
@@ -42,26 +46,26 @@ SoundGenerator.prototype._beeping = function () {
 	//console.log("Current Gain before:" + this.gainNode.gain.value);
 
 	
-	//var AudioParam = AudioParam.setValueAtTime(0, this.audioContext.currentTime);
-	
-	// according to DIN EN 60645-1 p. 27
-	// linear oder exponential ramp? -- 
-    this.gainNode.gain = 0;
-	//var currentTime
-	this.oscillator.start(this.audioContext.currentTime);
-	//this.gainNode.gain.setValueAtTime(0.01, this.audioContext.currentTime);							// start at 0ms with gain 0
-	this.gainNode.gain.exponentialRampToValueAtTime(1, this.audioContext.currentTime + 0.04);		// ramp length 20 - 50ms (chose 40ms)
-	this.gainNode.gain.setValueAtTime(1, this.audioContext.currentTime + 0.04 + 0.2);						// beep length must be more than 150 ms (chose 200ms)
-	this.gainNode.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 0.04 + 0.2 + 0.04);	// ramp length 20 - 50ms (chose 40ms)
-    this.oscillator.stop(this.audioContext.currentTime + 0.04 + 0.2 + 0.04 + 0.2);    //End in 
+	var startTime = this.audioContext.currentTime;				// according to DIN EN 60645-1 p. 27
+
+	this.oscillator.start(startTime);		
+	this.gainNode.gain.setValueAtTime(0, startTime);	
+	this.gainNode.gain.linearRampToValueAtTime(this.gain, startTime + 0.05);			// ramp length 20 - 50ms (chose 40ms)
+	this.gainNode.gain.setValueAtTime(this.gain, startTime + 0.05 + 0.2);				// beep length must be more than 150 ms (chose 200ms)
+	this.gainNode.gain.linearRampToValueAtTime(0, startTime + 0.05 + 0.2 + 0.05);		// ramp length 20 - 50ms (chose 40ms)
+    this.oscillator.stop(startTime + 0.05 + 0.2 + 0.05 + 0.2);   									//End in 
 };
 
 SoundGenerator.prototype.start = function () {
     this._beeping();
 };
 SoundGenerator.prototype.stop = function () {
-    if (this.oscillator !== null)
+    // LOOP ? How to end? Just one time!
+	console.log("Beep");
+	this.audioContext.close();
+	if (this.oscillator !== null){
         this.oscillator.onended = null;
+	}
 };
 SoundGenerator.prototype.getFrequency = function () {
     return this.frequency;
@@ -121,6 +125,8 @@ Audiometer.prototype.start = function () {
 };
 Audiometer.prototype._stop = function () {
     this.soundGenerator.stop();
+	
+	//"ready function Callback" in HTML script tag
     this.finishedCallback();
 };
 Audiometer.prototype.increaseLoudness = function () {
@@ -136,11 +142,15 @@ Audiometer.prototype._handleBeep = function () {
     this.userFeedback.push(this.loudness);
 
     if (Date.now() - this.startTime > 30 * 1000) {
-        this._stop();
+        
+		// Programm nach 30 sec ändern
+		
+		//Erst ganz am ende aufrufen
+		this._stop();
 
         return;
     }
-    this.node.innerHTML = this.soundGenerator.getGain() + " " + (Date.now() - this.startTime);
+    this.node.innerHTML = this.soundGenerator.getGain() + " --- " + (Date.now() - this.startTime) / 1000 + " sec";
 
     var loudnessNext = null;
     if (this.buttonPressed) {
@@ -150,6 +160,8 @@ Audiometer.prototype._handleBeep = function () {
     }
     if (loudnessNext !== null) this.loudness = loudnessNext;
     this.soundGenerator.setGain(this.calibration.getFrequencyGain(this.frequency, this.activeChannel, this.loudness));
+	
+	
 };
 
 /**
@@ -284,16 +296,16 @@ Calibrator.prototype.decreaseFrequency = function () {
     }
     console.warn("Reached minimum freq!");
 };
-Calibrator.prototype.increaseGain = function () {
-    if (this.gainIndex + 1 < this.gain.length) {
-        this.gainIndex++;
+Calibrator.prototype.increaseGain = function (steps) {
+    if (this.gainIndex + steps + 1 < this.gain.length) {
+        this.gainIndex += steps;
         return;
     }
     console.warn("Reached maximum gain!");
 };
-Calibrator.prototype.decreaseGain = function () {
-    if (this.gainIndex > 0) {
-        this.gainIndex--;
+Calibrator.prototype.decreaseGain = function (steps) {
+    if (this.gainIndex - steps > 0) {
+        this.gainIndex -= steps;
         return;
     }
     console.warn("Reached minimum gain!");

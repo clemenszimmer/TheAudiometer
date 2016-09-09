@@ -2,18 +2,44 @@
 <html>
 
 <head>
+	<link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css">
+
     <script type="text/javascript" src="js/TheAudiometer.js"></script>
     <script>
-            var calibrator = new Calibrator([250, 500, 1000], 0, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
+	
+			//TODO input CSV file, parse CSV to Array
+			var initFrequency = [250, 500, 1000];
+			var initGain = [];
+	        for(i = 0; i < 100; i++) {
+			    initGain.push(i * 0.01);
+			}
+	        console.log(initGain);
+	
+            var calibrator = new Calibrator(initFrequency, 0, initGain);
 
             window.onkeydown = function (event) {
                 switch (event.keyCode) {
                     case 38:
-                        calibrator.increaseGain();
+					    if (!event.ctrlKey && !event.altKey) {
+						    calibrator.increaseGain(10);
+						}
+					    if (event.ctrlKey && !event.altKey) {
+						    calibrator.increaseGain(5);
+						}
+					    if (!event.ctrlKey && event.altKey) {
+						    calibrator.increaseGain(1);
+						}
                         break;
                     case 40:
-                        calibrator.decreaseGain();
-                        break;
+					    if (!event.ctrlKey && !event.altKey) {
+						    calibrator.decreaseGain(10);
+						}
+					    if (event.ctrlKey && !event.altKey) {
+						    calibrator.decreaseGain(5);
+						}
+					    if (!event.ctrlKey && event.altKey) {
+						    calibrator.decreaseGain(1);
+						}                        break;
                     case 37:
                         calibrator.decreaseFrequency();
                         break;
